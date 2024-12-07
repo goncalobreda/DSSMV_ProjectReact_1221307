@@ -53,10 +53,16 @@ export default function LibrariesScreen({ navigation }) {
         );
     };
 
-    const handleEdit = (libraryId) => {
-        setModalVisible(false); // Fechar o modal
-        navigation.navigate('EditLibrary', { libraryId }); // Navegar para o ecrã de edição
+    const handleEdit = (library) => {
+        setModalVisible(false);
+        navigation.navigate('LibraryEdit', {
+            libraryId: library.id, // Certifique-se de passar o ID
+            libraryData: library, // Passar os dados da biblioteca
+        });
     };
+
+
+
 
     const openOptions = (library) => {
         if (library) {
@@ -108,7 +114,7 @@ export default function LibrariesScreen({ navigation }) {
                         </Text>
                         <TouchableOpacity
                             style={styles.modalButton}
-                            onPress={() => handleEdit(selectedLibrary?.id)}
+                            onPress={() => handleEdit(selectedLibrary)}
                         >
                             <Text style={styles.modalButtonText}>Editar</Text>
                         </TouchableOpacity>

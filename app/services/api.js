@@ -45,5 +45,19 @@ export const deleteLibrary = async (libraryId) => {
     }
 };
 
+export const editLibrary = async (libraryId, updatedData) => {
+    try {
+        const response = await api.put(`/library/${libraryId}`, updatedData);
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao atualizar biblioteca:', error);
+        throw error;
+    }
+};
+
+
+
+
+
 
 export default api;

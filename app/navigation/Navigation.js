@@ -8,6 +8,7 @@ import BookEditScreen from '../screens/BookEditScreen';
 import AddLibraryScreen from '../screens/AddLibraryScreen';
 import AddBookScreen from '../screens/AddBookScreen';
 import CheckoutsScreen from '../screens/CheckoutsScreen';
+import EditLibraryScreen from '../screens/EditLibraryScreen';
 
 const Stack = createStackNavigator();
 
@@ -18,6 +19,7 @@ const Navigation = () => (
         <Stack.Screen name="LibraryBooks" component={LibraryBookScreen} />
         <Stack.Screen name="BookDetails" component={BookDetailsScreen} />
         <Stack.Screen name="BookEdit" component={BookEditScreen} />
+        <Stack.Screen name="LibraryEdit" component={EditLibraryScreen} />
         <Stack.Screen name="AddLibrary" component={AddLibraryScreen} />
         <Stack.Screen name="AddBook" component={AddBookScreen} />
         <Stack.Screen name="Checkouts" component={CheckoutsScreen} />

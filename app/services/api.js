@@ -15,6 +15,16 @@ export const getLibraries = async () => {
     }
 };
 
+export const createLibrary = async (library) => {
+    try {
+        const response = await api.post('/library', library);
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao criar biblioteca:', error);
+        throw error;
+    }
+};
+
 export const getLibraryBooks = async (libraryId) => {
     try {
         const response = await api.get(`/library/${libraryId}/book`);

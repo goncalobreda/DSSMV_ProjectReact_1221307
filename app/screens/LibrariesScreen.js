@@ -1,24 +1,30 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert, Modal } from 'react-native';
 import { getLibraries, deleteLibrary } from '../services/api';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function LibrariesScreen({ navigation }) {
     const [libraries, setLibraries] = useState([]);
     const [selectedLibrary, setSelectedLibrary] = useState(null); // Biblioteca selecionada
     const [modalVisible, setModalVisible] = useState(false); // Visibilidade do modal
 
-    useEffect(() => {
-        const fetchLibraries = async () => {
-            try {
-                const data = await getLibraries();
-                setLibraries(data);
-            } catch (error) {
-                console.error('Erro ao buscar bibliotecas:', error);
-            }
-        };
+    // Função para buscar as bibliotecas
+    const fetchLibraries = async () => {
+        try {
+            const data = await getLibraries();
+            setLibraries(data);
+        } catch (error) {
+            console.error('Erro ao buscar bibliotecas:', error);
+        }
+    };
 
-        fetchLibraries();
-    }, []);
+    useFocusEffect(
+        React.useCallback(() => {
+            fetchLibraries().catch((error) => {
+                console.error('Erro ao carregar bibliotecas:', error);
+            });
+        }, [])
+    );
 
     const handleDelete = async (libraryId) => {
         Alert.alert(
@@ -72,6 +78,15 @@ export default function LibrariesScreen({ navigation }) {
 
     return (
         <View style={styles.container}>
+            {/* Botão para adicionar uma nova biblioteca */}
+            <TouchableOpacity
+                style={styles.addButton}
+                onPress={() => navigation.navigate('AddLibrary')}
+            >
+                <Text style={styles.addButtonText}>+ Adicionar Biblioteca</Text>
+            </TouchableOpacity>
+
+            {/* Lista de bibliotecas */}
             <FlatList
                 data={libraries}
                 keyExtractor={(item) => item.id.toString()}
@@ -144,11 +159,23 @@ const styles = StyleSheet.create({
         color: '#666',
         marginTop: 5,
     },
+    addButton: {
+        backgroundColor: '#4CAF50',
+        padding: 15,
+        borderRadius: 10,
+        margin: 10,
+        alignItems: 'center',
+    },
+    addButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
     modalContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Fundo semitransparente
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalContent: {
         width: '80%',

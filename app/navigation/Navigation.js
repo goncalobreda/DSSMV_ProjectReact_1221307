@@ -13,7 +13,7 @@ const Stack = createStackNavigator();
 
 const Navigation = () => (
     <Stack.Navigator initialRouteName="Main">
-        <Stack.Screen name="Main" component={MainScreen} />
+        <Stack.Screen name="Main" component={MainScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="Libraries" component={LibrariesScreen} />
         <Stack.Screen name="LibraryBooks" component={LibraryBookScreen} />
         <Stack.Screen name="BookDetails" component={BookDetailsScreen} />

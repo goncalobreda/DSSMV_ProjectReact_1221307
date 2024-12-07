@@ -1,5 +1,6 @@
 export const ADD_LIBRARY = 'ADD_LIBRARY';
 export const REMOVE_LIBRARY = 'REMOVE_LIBRARY';
+export const FETCH_LIBRARIES = 'FETCH_LIBRARIES';
 
 export const addLibrary = (library) => ({
     type: ADD_LIBRARY,
@@ -11,8 +12,14 @@ export const removeLibrary = (id) => ({
     payload: id,
 });
 
-// Exportação padrão para evitar o aviso
+export const fetchLibraries = (libraries) => ({
+    type: FETCH_LIBRARIES,
+    payload: libraries, // Dados das bibliotecas que serão enviados para o reducer
+});
+
+
 export default {
     addLibrary,
     removeLibrary,
+    fetchLibraries,
 };

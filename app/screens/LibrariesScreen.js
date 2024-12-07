@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
-import { getLibraries } from '../services/api';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert, Modal } from 'react-native';
+import { getLibraries, deleteLibrary } from '../services/api';
 
 export default function LibrariesScreen({ navigation }) {
     const [libraries, setLibraries] = useState([]);
+    const [selectedLibrary, setSelectedLibrary] = useState(null); // Biblioteca selecionada
+    const [modalVisible, setModalVisible] = useState(false); // Visibilidade do modal
 
     useEffect(() => {
         const fetchLibraries = async () => {
@@ -18,9 +20,49 @@ export default function LibrariesScreen({ navigation }) {
         fetchLibraries();
     }, []);
 
+    const handleDelete = async (libraryId) => {
+        Alert.alert(
+            'Confirmação',
+            'Tem a certeza de que deseja eliminar esta biblioteca?',
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                    text: 'Eliminar',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await deleteLibrary(libraryId);
+                            setLibraries((prevLibraries) =>
+                                prevLibraries.filter((library) => library.id !== libraryId)
+                            );
+                            setModalVisible(false); // Fechar o modal
+                            Alert.alert('Sucesso', 'Biblioteca eliminada com sucesso.');
+                        } catch (error) {
+                            console.error('Erro ao eliminar biblioteca:', error);
+                            Alert.alert('Erro', 'Não foi possível eliminar a biblioteca.');
+                        }
+                    },
+                },
+            ]
+        );
+    };
+
+    const handleEdit = (libraryId) => {
+        setModalVisible(false); // Fechar o modal
+        navigation.navigate('EditLibrary', { libraryId }); // Navegar para o ecrã de edição
+    };
+
+    const openOptions = (library) => {
+        if (library) {
+            setSelectedLibrary(library); // Define a biblioteca selecionada
+            setModalVisible(true); // Abre o modal
+        }
+    };
+
     const renderLibraryItem = ({ item }) => (
         <TouchableOpacity
             style={styles.libraryItem}
+            onLongPress={() => openOptions(item)} // Pressionar e manter para abrir opções
             onPress={() => navigation.navigate('LibraryBooks', { libraryId: item.id })}
         >
             <Text style={styles.libraryName}>{item.name}</Text>
@@ -36,6 +78,40 @@ export default function LibrariesScreen({ navigation }) {
                 renderItem={renderLibraryItem}
                 contentContainerStyle={styles.list}
             />
+
+            {/* Modal para opções */}
+            <Modal
+                transparent={true}
+                animationType="slide"
+                visible={modalVisible}
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>
+                            Opções para {selectedLibrary?.name || 'Biblioteca'}
+                        </Text>
+                        <TouchableOpacity
+                            style={styles.modalButton}
+                            onPress={() => handleEdit(selectedLibrary?.id)}
+                        >
+                            <Text style={styles.modalButtonText}>Editar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.modalButton, styles.deleteButton]}
+                            onPress={() => handleDelete(selectedLibrary?.id)}
+                        >
+                            <Text style={styles.modalButtonText}>Eliminar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.cancelButton}
+                            onPress={() => setModalVisible(false)}
+                        >
+                            <Text style={styles.cancelButtonText}>Cancelar</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -54,8 +130,8 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginBottom: 10,
         shadowColor: '#000',
-        shadowOpacity: 0.4,
-        shadowRadius: 5,
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
         shadowOffset: { width: 0, height: 2 },
     },
     libraryName: {
@@ -67,5 +143,48 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#666',
         marginTop: 5,
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Fundo semitransparente
+    },
+    modalContent: {
+        width: '80%',
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        padding: 20,
+        alignItems: 'center',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 20,
+    },
+    modalButton: {
+        backgroundColor: '#4CAF50',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+        marginTop: 10,
+        width: '100%',
+        alignItems: 'center',
+    },
+    deleteButton: {
+        backgroundColor: '#ff4d4d',
+    },
+    modalButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    cancelButton: {
+        marginTop: 20,
+        alignItems: 'center',
+    },
+    cancelButtonText: {
+        fontSize: 16,
+        color: '#333',
     },
 });

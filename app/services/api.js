@@ -25,4 +25,15 @@ export const getLibraryBooks = async (libraryId) => {
     }
 };
 
+export const deleteLibrary = async (libraryId) => {
+    try {
+        const response = await api.delete(`/library/${libraryId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao eliminar biblioteca:', error);
+        throw error;
+    }
+};
+
+
 export default api;

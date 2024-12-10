@@ -1,6 +1,6 @@
 import React, { createContext, useReducer } from 'react';
-import reducer from './reducer'; // Certifique-se que o caminho está correto
-import initialState from './state'; // Certifique-se que o caminho está correto
+import reducer from './reducer';
+import initialState from './state';
 
 export const AppContext = createContext();
 

@@ -1,6 +1,6 @@
 import React from 'react';
-import Navigation from './navigation/Navigation'; // Certifique-se que o caminho está correto
-import { AppProvider } from './context/AppContext'; // Certifique-se que o caminho está correto
+import Navigation from './navigation/Navigation';
+import { AppProvider } from './context/AppContext';
 
 export default function App() {
     return (

@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Modal, ScrollView } from 'react-native';
 import { getLibraries, deleteLibrary } from '../services/api';
 import { useFocusEffect } from '@react-navigation/native';
 
 export default function LibrariesScreen({ navigation }) {
     const [libraries, setLibraries] = useState([]);
-    const [selectedLibrary, setSelectedLibrary] = useState(null); // Biblioteca selecionada
-    const [modalVisible, setModalVisible] = useState(false); // Visibilidade do modal
+    const [selectedLibrary, setSelectedLibrary] = useState(null);
+    const [modalVisible, setModalVisible] = useState(false);
 
-    // Função para buscar as bibliotecas
     const fetchLibraries = async () => {
         try {
             const data = await getLibraries();
@@ -41,7 +40,7 @@ export default function LibrariesScreen({ navigation }) {
                             setLibraries((prevLibraries) =>
                                 prevLibraries.filter((library) => library.id !== libraryId)
                             );
-                            setModalVisible(false); // Fechar o modal
+                            setModalVisible(false);
                             Alert.alert('Sucesso', 'Biblioteca eliminada com sucesso.');
                         } catch (error) {
                             console.error('Erro ao eliminar biblioteca:', error);
@@ -56,35 +55,32 @@ export default function LibrariesScreen({ navigation }) {
     const handleEdit = (library) => {
         setModalVisible(false);
         navigation.navigate('LibraryEdit', {
-            libraryId: library.id, // Certifique-se de passar o ID
-            libraryData: library, // Passar os dados da biblioteca
+            libraryId: library.id,
+            libraryData: library,
         });
     };
 
-
-
-
     const openOptions = (library) => {
         if (library) {
-            setSelectedLibrary(library); // Define a biblioteca selecionada
-            setModalVisible(true); // Abre o modal
+            setSelectedLibrary(library);
+            setModalVisible(true);
         }
     };
 
-    const renderLibraryItem = ({ item }) => (
+    const renderLibraryItem = (library) => (
         <TouchableOpacity
+            key={library.id}
             style={styles.libraryItem}
-            onLongPress={() => openOptions(item)} // Pressionar e manter para abrir opções
-            onPress={() => navigation.navigate('LibraryBooks', { libraryId: item.id })}
+            onLongPress={() => openOptions(library)}
+            onPress={() => navigation.navigate('LibraryBooks', { libraryId: library.id })}
         >
-            <Text style={styles.libraryName}>{item.name}</Text>
-            <Text style={styles.libraryAddress}>{item.address}</Text>
+            <Text style={styles.libraryName}>{library.name}</Text>
+            <Text style={styles.libraryAddress}>{library.address}</Text>
         </TouchableOpacity>
     );
 
     return (
         <View style={styles.container}>
-            {/* Botão para adicionar uma nova biblioteca */}
             <TouchableOpacity
                 style={styles.addButton}
                 onPress={() => navigation.navigate('AddLibrary')}
@@ -92,15 +88,11 @@ export default function LibrariesScreen({ navigation }) {
                 <Text style={styles.addButtonText}>+ Adicionar Biblioteca</Text>
             </TouchableOpacity>
 
-            {/* Lista de bibliotecas */}
-            <FlatList
-                data={libraries}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={renderLibraryItem}
-                contentContainerStyle={styles.list}
-            />
+            {/* Adicionado ScrollView para garantir o scroll */}
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
+                {libraries.map(renderLibraryItem)}
+            </ScrollView>
 
-            {/* Modal para opções */}
             <Modal
                 transparent={true}
                 animationType="slide"
@@ -142,8 +134,11 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#f5f5f5',
     },
-    list: {
-        padding: 10,
+    scrollContainer: {
+        flexGrow: 1,
+        paddingHorizontal: 10,
+        paddingBottom: 20,
+        touchAction: 'auto',
     },
     libraryItem: {
         backgroundColor: '#fff',

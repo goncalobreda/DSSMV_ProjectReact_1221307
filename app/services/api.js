@@ -55,7 +55,43 @@ export const editLibrary = async (libraryId, updatedData) => {
     }
 };
 
+export const getCheckedOutBooks = async (userId) => {
+    try {
+        const response = await api.get(`/user/checked-out`, {
+            params: {
+                userId,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao buscar livros emprestados:', error);
+        throw error;
+    }
+};
 
+export const checkInBook = async (libraryId, bookId, userId) => {
+    try {
+        const response = await api.post(`/library/${libraryId}/book/${bookId}/checkin`, null, {
+            params: {
+                userId,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error(`Erro ao fazer check-in do livro com ID ${bookId} na biblioteca ${libraryId}:`, error);
+        throw error;
+    }
+};
+
+export const extendCheckout = async (checkoutId) => {
+    try {
+        const response = await api.post(`/checkout/${checkoutId}/extend`);
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao extender o prazo do livro:', error);
+        throw error;
+    }
+};
 
 
 

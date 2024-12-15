@@ -35,6 +35,17 @@ export const getLibraryBooks = async (libraryId) => {
     }
 };
 
+export const createBook = async (libraryId, isbn, stock) => {
+    try {
+        const response = await api.post(`/library/${libraryId}/book/${isbn}`, { stock });
+        return response.data;
+    } catch (error) {
+        console.error(`Erro ao criar livro na biblioteca ${libraryId}:`, error);
+        throw error;
+    }
+};
+
+
 export const deleteLibrary = async (libraryId) => {
     try {
         const response = await api.delete(`/library/${libraryId}`);
@@ -92,7 +103,6 @@ export const extendCheckout = async (checkoutId) => {
         throw error;
     }
 };
-
 
 
 

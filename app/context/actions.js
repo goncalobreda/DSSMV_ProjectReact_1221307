@@ -14,7 +14,7 @@ export const removeLibrary = (id) => ({
 
 export const fetchLibraries = (libraries) => ({
     type: FETCH_LIBRARIES,
-    payload: libraries, // Dados das bibliotecas que serão enviados para o reducer
+    payload: libraries,
 });
 
 

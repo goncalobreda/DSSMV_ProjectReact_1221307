@@ -1,23 +1,26 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, Image } from 'react-native';
-import { getLibraryBooks } from '../services/api';
+import React, {useEffect, useState} from 'react';
+import {FlatList, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {getLibraryBooks} from '../services/api';
 
-export default function LibraryBookScreen({ route }) {
+export default function LibraryBookScreen({ route, navigation }) {
     const { libraryId } = route.params;
     const [books, setBooks] = useState([]);
 
-    useEffect(() => {
-        const fetchBooks = async () => {
-            try {
-                const data = await getLibraryBooks(libraryId);
-                setBooks(data);
-            } catch (error) {
-                console.error('Erro ao encontrar livros:', error);
-            }
-        };
+    // Função para buscar livros da biblioteca
+    const fetchBooks = async () => {
+        try {
+            const data = await getLibraryBooks(libraryId);
+            setBooks(data);
+        } catch (error) {
+            console.error('Erro ao encontrar livros:', error);
+        }
+    };
 
-        fetchBooks();
-    }, [libraryId]);
+    useEffect(() => {
+        fetchBooks(); // Carrega os livros inicialmente
+
+        return navigation.addListener('focus', fetchBooks);
+    }, [navigation, libraryId]);
 
     const renderBookItem = ({ item }) => {
         const authors = item.book.authors?.map((author) => author.name).join(', ') || 'Autor Desconhecido';
@@ -28,7 +31,12 @@ export default function LibraryBookScreen({ route }) {
             : 'https://via.placeholder.com/100x150.png?text=Sem+Capa'; // Fallback
 
         return (
-            <View style={styles.bookItem}>
+
+
+            <TouchableOpacity
+                onPress={() => navigation.navigate('BookDetails', { book: item.book, available: item.available || 0, })}
+                style={styles.bookItem}
+            >
                 {/* Imagem da capa */}
                 <Image source={{ uri: coverUrl }} style={styles.bookCover} />
 
@@ -38,12 +46,19 @@ export default function LibraryBookScreen({ route }) {
                     <Text style={styles.bookAuthor}>Autor(es): {authors}</Text>
                     <Text style={styles.bookAvailability}>Disponíveis: {item.available || 0}</Text>
                 </View>
-            </View>
+            </TouchableOpacity>
         );
     };
 
     return (
         <View style={styles.container}>
+
+            <TouchableOpacity
+                style={styles.addBookButton}
+                onPress={() => navigation.navigate('AddBook', { libraryId })}
+            >
+                <Text style={styles.addBookButtonText}>+ Adicionar Livro</Text>
+            </TouchableOpacity>
             <FlatList
                 data={books || []}
                 keyExtractor={(item) => item.book.isbn.toString()}
@@ -76,28 +91,45 @@ const styles = StyleSheet.create({
         borderColor: '#ddd',
     },
     bookCover: {
-        width: 100,
-        height: 150,
-        borderRadius: 5,
-        marginRight: 15, // Espaçamento entre a imagem e o texto
+        width: 60,
+        height: 90,
+        borderRadius: 8,
+        marginRight: 10,
+        borderWidth: 1,
+        borderColor: '#ddd',
     },
     bookInfo: {
-        flex: 1, // Ocupa o restante espaço disponível
+        flex: 1,
         justifyContent: 'center',
     },
     bookTitle: {
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: 'bold',
         color: '#333',
-        marginBottom: 5,
     },
     bookAuthor: {
         fontSize: 14,
         color: '#666',
-        marginBottom: 5,
+        marginTop: 2,
     },
     bookAvailability: {
         fontSize: 14,
         color: '#4CAF50',
+        marginTop: 2,
     },
+    addBookButton: {
+        backgroundColor: '#4CAF50',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+        alignItems: 'center',
+        marginVertical: 10,
+    },
+    addBookButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+
+
 });

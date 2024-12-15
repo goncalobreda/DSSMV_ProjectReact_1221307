@@ -1,7 +1,7 @@
 const initialState = {
     libraries: [],
-    books: [],
-    checkedOutBooks: [], //userid
+    books: {},
+    checkedOutBooks: {}, //userid
 };
 
 export default initialState;

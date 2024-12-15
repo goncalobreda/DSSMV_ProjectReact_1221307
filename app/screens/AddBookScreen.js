@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { createBook } from '../services/api';
+import { AppContext } from '../context/AppContext';
+import { addBookAction } from '../context/actions';
 
 export default function AddBookScreen({ route, navigation }) {
     const { libraryId } = route.params;
+    const { dispatch } = useContext(AppContext);
     const [isbn, setIsbn] = useState('');
     const [stock, setStock] = useState('');
 
@@ -14,10 +16,12 @@ export default function AddBookScreen({ route, navigation }) {
         }
 
         try {
-            await createBook(libraryId, isbn, parseInt(stock, 10));
+            // Adicionar o livro via ação
+            await addBookAction(libraryId, isbn, parseInt(stock, 10))(dispatch);
             Alert.alert('Sucesso', 'Livro adicionado com sucesso!');
-            navigation.goBack();
+            navigation.goBack(); // Retorna para a LibraryBooksScreen
         } catch (error) {
+            console.error('Erro ao adicionar livro:', error);
             Alert.alert('Erro', 'Não foi possível adicionar o livro.');
         }
     };

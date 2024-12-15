@@ -104,4 +104,17 @@ export const extendCheckout = async (checkoutId) => {
         throw error;
     }
 };
+
+export const checkoutBook = async (libraryId, bookId, userId) => {
+    try {
+        const response = await api.post(`/library/${libraryId}/book/${bookId}/checkout`, null, {
+            params: { userId },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao fazer checkout do livro:', error.response?.data || error.message);
+        throw error;
+    }
+};
+
 export default api;

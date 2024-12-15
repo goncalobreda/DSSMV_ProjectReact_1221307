@@ -1,40 +1,40 @@
-import React, {useEffect, useState} from 'react';
-import {FlatList, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import {getLibraryBooks} from '../services/api';
+import React, { useContext, useEffect } from 'react';
+import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { AppContext } from '../context/AppContext';
+import { fetchLibraryBooks } from '../context/actions';
 
 export default function LibraryBookScreen({ route, navigation }) {
     const { libraryId } = route.params;
-    const [books, setBooks] = useState([]);
+    const { state, dispatch } = useContext(AppContext);
 
-    // Função para buscar livros da biblioteca
-    const fetchBooks = async () => {
-        try {
-            const data = await getLibraryBooks(libraryId);
-            setBooks(data);
-        } catch (error) {
-            console.error('Erro ao encontrar livros:', error);
-        }
-    };
+    const books = state.books[libraryId] || []; // Filtrar os livros da biblioteca no estado global
 
     useEffect(() => {
-        fetchBooks(); // Carrega os livros inicialmente
+        fetchLibraryBooks(libraryId)(dispatch);
 
-        return navigation.addListener('focus', fetchBooks);
-    }, [navigation, libraryId]);
+        const unsubscribe = navigation.addListener('focus', () => {
+            fetchLibraryBooks(libraryId)(dispatch);
+        });
+
+        return unsubscribe; // Remove listener ao desmontar
+    }, [navigation, libraryId, dispatch]);
 
     const renderBookItem = ({ item }) => {
         const authors = item.book.authors?.map((author) => author.name).join(', ') || 'Autor Desconhecido';
 
-        // Construir a URL da capa dinamicamente com base no ISBN
         const coverUrl = item.book.isbn
             ? `http://193.136.62.24/v1/assets/cover/${item.book.isbn}-M.jpg`
             : 'https://via.placeholder.com/100x150.png?text=Sem+Capa'; // Fallback
 
         return (
-
-
             <TouchableOpacity
-                onPress={() => navigation.navigate('BookDetails', { book: item.book, available: item.available || 0, })}
+                onPress={() =>
+                    navigation.navigate('BookDetails', {
+                        book: { ...item.book, id: item.book.isbn },
+                        available: item.available || 0,
+                        libraryId: libraryId,
+                    })
+                }
                 style={styles.bookItem}
             >
                 {/* Imagem da capa */}
@@ -52,7 +52,6 @@ export default function LibraryBookScreen({ route, navigation }) {
 
     return (
         <View style={styles.container}>
-
             <TouchableOpacity
                 style={styles.addBookButton}
                 onPress={() => navigation.navigate('AddBook', { libraryId })}
@@ -60,10 +59,13 @@ export default function LibraryBookScreen({ route, navigation }) {
                 <Text style={styles.addBookButtonText}>+ Adicionar Livro</Text>
             </TouchableOpacity>
             <FlatList
-                data={books || []}
+                data={books}
                 keyExtractor={(item) => item.book.isbn.toString()}
                 renderItem={renderBookItem}
                 contentContainerStyle={styles.list}
+                ListEmptyComponent={
+                    <Text style={{ textAlign: 'center', marginTop: 20 }}>Nenhum livro encontrado.</Text>
+                }
             />
         </View>
     );
@@ -78,7 +80,7 @@ const styles = StyleSheet.create({
         padding: 10,
     },
     bookItem: {
-        flexDirection: 'row', // Alinha capa e detalhes horizontalmente
+        flexDirection: 'row',
         backgroundColor: '#fff',
         padding: 15,
         borderRadius: 10,
@@ -130,6 +132,4 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
     },
-
-
 });

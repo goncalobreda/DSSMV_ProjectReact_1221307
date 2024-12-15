@@ -13,10 +13,13 @@ export default function CheckoutsScreen({ route }) {
     const { userId } = route.params;
     const { state, dispatch } = useContext(AppContext);
 
-    const books = (state.checkedOutBooks[userId] || []).map((item) => ({
-        ...item,
-        libraryId: formatLibraryId(item.libraryId),
-    }));
+    const books = Array.isArray(state.checkedOutBooks[userId])
+        ? state.checkedOutBooks[userId].map((item) => ({
+            ...item,
+            libraryId: formatLibraryId(item.libraryId),
+        }))
+        : [];
+
 
 
 
@@ -59,6 +62,8 @@ export default function CheckoutsScreen({ route }) {
 
 
     const renderBookItem = ({ item }) => {
+        if (!item.book) return null; // Previne o erro se item.book for null
+
         const authors = item.book.authors?.map((author) => author.name).join(', ') || 'Autor Desconhecido';
 
         return (
@@ -83,12 +88,13 @@ export default function CheckoutsScreen({ route }) {
 
 
 
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Livros Emprestados</Text>
             <FlatList
                 data={books || []} // Garante que data nunca é undefined
-                keyExtractor={(item) => item.id.toString()}
+                keyExtractor={(item, index) => (item.id ? item.id.toString() : `fallback-${index}`)}
                 renderItem={renderBookItem}
                 contentContainerStyle={styles.list}
                 ListEmptyComponent={() => (

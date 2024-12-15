@@ -7,7 +7,7 @@ import {
     editLibrary,
     getCheckedOutBooks,
     checkInBook,
-    extendCheckout,
+    extendCheckout, checkoutBook,
 } from '../services/api';
 
 // Action Types
@@ -22,6 +22,7 @@ export const CREATE_BOOK = 'CREATE_BOOK';
 export const FETCH_CHECKED_OUT_BOOKS = 'FETCH_CHECKED_OUT_BOOKS';
 export const CHECK_IN_BOOK = 'CHECK_IN_BOOK';
 export const EXTEND_CHECKOUT = 'EXTEND_CHECKOUT';
+export const CHECKOUT_BOOK = 'CHECKOUT_BOOK';
 
 // Actions
 
@@ -37,7 +38,7 @@ export const fetchLibraries = () => async (dispatch) => {
 };
 
 // Add a new library
-export const addLibrary = (libraryData) => async (dispatch) => {
+export const addLibraryAction = (libraryData) => async (dispatch) => {
     try {
         const library = await createLibrary(libraryData);
         dispatch({ type: ADD_LIBRARY, payload: library });
@@ -48,7 +49,7 @@ export const addLibrary = (libraryData) => async (dispatch) => {
 };
 
 // Remove a library
-export const removeLibrary = (libraryId) => async (dispatch) => {
+export const deleteLibraryAction = (libraryId) => async (dispatch) => {
     try {
         await deleteLibrary(libraryId);
         dispatch({ type: REMOVE_LIBRARY, payload: libraryId });
@@ -75,13 +76,13 @@ export const fetchLibraryBooks = (libraryId) => async (dispatch) => {
         const books = await getLibraryBooks(libraryId);
         dispatch({ type: FETCH_LIBRARY_BOOKS, payload: { libraryId, books } });
     } catch (error) {
-        console.error('Erro ao buscar livros da biblioteca:', error);
+        console.error('Erro a encontrar livros da biblioteca:', error);
         throw error;
     }
 };
 
 // Create a book in a library
-export const addBook = (libraryId, isbn, stock) => async (dispatch) => {
+export const addBookAction = (libraryId, isbn, stock) => async (dispatch) => {
     try {
         const newBook = await createBook(libraryId, isbn, stock);
         dispatch({ type: CREATE_BOOK, payload: newBook });
@@ -132,16 +133,44 @@ export const extendCheckoutAction = (checkoutId) => async (dispatch) => {
     }
 };
 
+export const checkoutBookAction = (libraryId, bookId, userId) => async (dispatch) => {
+    console.log('Checkout Params:', { libraryId, bookId, userId }); // Verifica os parâmetros
+
+    if (!libraryId || !bookId || !userId) {
+        console.error('Parâmetros inválidos para checkout.');
+        throw new Error('Parâmetros inválidos: libraryId, bookId ou userId estão undefined.');
+    }
+
+    try {
+        const updatedBook = await checkoutBook(libraryId, bookId, userId);
+        dispatch({
+            type: CHECKOUT_BOOK,
+            payload: {
+                book: { ...updatedBook.book, id: updatedBook.book.id || Date.now() }, // Fallback para ID
+                available: updatedBook.available,
+                userId: userId,
+                libraryId: libraryId,
+            },
+        });
+    } catch (error) {
+        console.error('Erro ao fazer checkout do livro:', error);
+        throw error;
+    }
+};
+
+
+
 
 
 export default {
     fetchLibraries,
-    addLibrary,
-    removeLibrary,
+    addLibraryAction,
+    deleteLibraryAction,
     editLibraryAction,
     fetchLibraryBooks,
-    addBook,
+    addBookAction,
     fetchCheckedOutBooks,
     checkInBookAction,
     extendCheckoutAction,
+    checkoutBookAction,
 };

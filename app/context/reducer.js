@@ -8,6 +8,7 @@ import {
     FETCH_CHECKED_OUT_BOOKS,
     CHECK_IN_BOOK,
     EXTEND_CHECKOUT,
+    CHECKOUT_BOOK,
 } from './actions';
 
 const reducer = (state, action) => {
@@ -96,9 +97,25 @@ const reducer = (state, action) => {
                 },
             };
 
-        default:
+        case CHECKOUT_BOOK:
+            return {
+                ...state,
+                books: {
+                    ...state.books,
+                    [action.payload.libraryId]: (state.books[action.payload.libraryId] || []).map((book) =>
+                        book.book.id === action.payload.book.id
+                            ? { ...book, available: action.payload.available }
+                            : book
+                    ),
+                },
+
+            };
+
+            default:
             return state;
     }
 };
+
+
 
 export default reducer;

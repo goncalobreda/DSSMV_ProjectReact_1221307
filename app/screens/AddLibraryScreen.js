@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, {useContext, useState} from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, } from 'react-native';
-import { createLibrary } from '../services/api';
+import {AppContext} from "../context/AppContext";
+import {addLibraryAction} from "../context/actions";
 
 export default function AddLibraryScreen({ navigation }) {
     const [name, setName] = useState('');
@@ -8,6 +9,7 @@ export default function AddLibraryScreen({ navigation }) {
     const [openTime, setOpenTime] = useState('');
     const [closeTime, setCloseTime] = useState('');
     const [openDays, setOpenDays] = useState('');
+    const { dispatch } = useContext(AppContext);
 
     const handleCreate = async () => {
         if (!name || !address || !openTime || !closeTime || !openDays) {
@@ -15,14 +17,17 @@ export default function AddLibraryScreen({ navigation }) {
             return;
         }
 
-        const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/; // Formato HH:mm
+        const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
         if (!timeRegex.test(openTime) || !timeRegex.test(closeTime)) {
             Alert.alert('Erro', 'Por favor, insira as horas no formato HH:mm.');
             return;
         }
 
         try {
-            await createLibrary({ name, address, openTime, closeTime, openDays });
+            await addLibraryAction(
+                { name, address, openTime, closeTime, openDays }
+            )(dispatch);
+
             Alert.alert('Sucesso', 'Biblioteca criada com sucesso.');
             navigation.goBack();
         } catch (error) {

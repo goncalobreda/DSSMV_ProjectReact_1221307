@@ -13,14 +13,14 @@ export default function LibrariesScreen({ navigation }) {
             const data = await getLibraries();
             setLibraries(data);
         } catch (error) {
-            console.error('Erro ao buscar bibliotecas:', error);
+            console.error('Erro a encontrar bibliotecas:', error);
         }
     };
 
     useFocusEffect(
         React.useCallback(() => {
             fetchLibraries().catch((error) => {
-                console.error('Erro ao carregar bibliotecas:', error);
+                console.error('Erro a carregar bibliotecas:', error);
             });
         }, [])
     );
@@ -88,7 +88,7 @@ export default function LibrariesScreen({ navigation }) {
                 <Text style={styles.addButtonText}>+ Adicionar Biblioteca</Text>
             </TouchableOpacity>
 
-            {/* Adicionado ScrollView para garantir o scroll */}
+
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 {libraries.map(renderLibraryItem)}
             </ScrollView>

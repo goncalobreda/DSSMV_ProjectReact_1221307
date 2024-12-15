@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Image } from 'react-native';
 import { getLibraryBooks } from '../services/api';
 
 export default function LibraryBookScreen({ route }) {
@@ -22,15 +22,25 @@ export default function LibraryBookScreen({ route }) {
     const renderBookItem = ({ item }) => {
         const authors = item.book.authors?.map((author) => author.name).join(', ') || 'Autor Desconhecido';
 
+        // Construir a URL da capa dinamicamente com base no ISBN
+        const coverUrl = item.book.isbn
+            ? `http://193.136.62.24/v1/assets/cover/${item.book.isbn}-M.jpg`
+            : 'https://via.placeholder.com/100x150.png?text=Sem+Capa'; // Fallback
+
         return (
             <View style={styles.bookItem}>
-                <Text style={styles.bookTitle}>{item.book.title || 'Título Desconhecido'}</Text>
-                <Text style={styles.bookAuthor}>Autor(es): {authors}</Text>
-                <Text style={styles.bookAvailability}>Disponíveis: {item.available}</Text>
+                {/* Imagem da capa */}
+                <Image source={{ uri: coverUrl }} style={styles.bookCover} />
+
+                {/* Informações do livro */}
+                <View style={styles.bookInfo}>
+                    <Text style={styles.bookTitle}>{item.book.title || 'Título Desconhecido'}</Text>
+                    <Text style={styles.bookAuthor}>Autor(es): {authors}</Text>
+                    <Text style={styles.bookAvailability}>Disponíveis: {item.available || 0}</Text>
+                </View>
             </View>
         );
     };
-
 
     return (
         <View style={styles.container}>
@@ -53,6 +63,7 @@ const styles = StyleSheet.create({
         padding: 10,
     },
     bookItem: {
+        flexDirection: 'row', // Alinha capa e detalhes horizontalmente
         backgroundColor: '#fff',
         padding: 15,
         borderRadius: 10,
@@ -63,6 +74,16 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 1 },
         borderWidth: 1,
         borderColor: '#ddd',
+    },
+    bookCover: {
+        width: 100,
+        height: 150,
+        borderRadius: 5,
+        marginRight: 15, // Espaçamento entre a imagem e o texto
+    },
+    bookInfo: {
+        flex: 1, // Ocupa o restante espaço disponível
+        justifyContent: 'center',
     },
     bookTitle: {
         fontSize: 18,

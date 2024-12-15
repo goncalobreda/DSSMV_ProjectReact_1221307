@@ -37,7 +37,7 @@ export const fetchLibraries = () => async (dispatch) => {
 };
 
 // Add a new library
-export const addLibrary = (libraryData) => async (dispatch) => {
+export const addLibraryAction = (libraryData) => async (dispatch) => {
     try {
         const library = await createLibrary(libraryData);
         dispatch({ type: ADD_LIBRARY, payload: library });
@@ -48,7 +48,7 @@ export const addLibrary = (libraryData) => async (dispatch) => {
 };
 
 // Remove a library
-export const removeLibrary = (libraryId) => async (dispatch) => {
+export const deleteLibraryAction = (libraryId) => async (dispatch) => {
     try {
         await deleteLibrary(libraryId);
         dispatch({ type: REMOVE_LIBRARY, payload: libraryId });
@@ -136,8 +136,8 @@ export const extendCheckoutAction = (checkoutId) => async (dispatch) => {
 
 export default {
     fetchLibraries,
-    addLibrary,
-    removeLibrary,
+    addLibraryAction,
+    deleteLibraryAction,
     editLibraryAction,
     fetchLibraryBooks,
     addBook,

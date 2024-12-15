@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import {View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard,} from 'react-native';
-import { editLibrary } from '../services/api';
+import { AppContext } from '../context/AppContext';
+import { editLibraryAction } from '../context/actions';
 
 export default function EditLibraryScreen({ route, navigation }) {
     const { libraryId, libraryData } = route.params || {};
+    const { dispatch } = useContext(AppContext);
 
     if (!libraryId || !libraryData) {
         console.error('Erro: ID ou dados da biblioteca ausentes.');
@@ -36,13 +38,10 @@ export default function EditLibraryScreen({ route, navigation }) {
 
         const updatedData = { name, address, openTime, closeTime, openDays };
 
-        console.log('Library ID:', libraryId); // Log do ID da biblioteca
-        console.log('Dados enviados para a API:', updatedData); // Log dos dados atualizados
-
         try {
-            await editLibrary(libraryId, updatedData);
+            await editLibraryAction(libraryId, updatedData)(dispatch);
             Alert.alert('Sucesso', 'Biblioteca atualizada com sucesso.');
-            navigation.goBack(); // Voltar para a lista de bibliotecas
+            navigation.goBack();
         } catch (error) {
             console.error('Erro ao atualizar biblioteca:', error.response || error);
             const errorMessage = error.response?.data?.message || 'Erro desconhecido.';

@@ -1,13 +1,5 @@
 import React, { useState } from 'react';
-import {
-    View,
-    Text,
-    TouchableOpacity,
-    Modal,
-    TextInput,
-    StyleSheet,
-    Alert,
-} from 'react-native';
+import {View, Text, TouchableOpacity, Modal, TextInput, StyleSheet, Alert,} from 'react-native';
 
 export default function MainScreen({ navigation }) {
     const [modalVisible, setModalVisible] = useState(false);

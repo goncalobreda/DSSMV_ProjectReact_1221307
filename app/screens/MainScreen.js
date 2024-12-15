@@ -1,69 +1,80 @@
-import React, { useState } from 'react';
-import {View, Text, TouchableOpacity, Modal, TextInput, StyleSheet, Alert,} from 'react-native';
+import React, { useState, useContext, useEffect } from 'react';
+import { View, Text, StyleSheet, Alert } from 'react-native';
+import Button from '../components/Button';
+import Popup from '../components/Popup';
+import Input from '../components/Input';
+import { AppContext } from '../context/AppContext';
+import { fetchCheckedOutBooks } from '../context/actions';
 
 export default function MainScreen({ navigation }) {
+    const { state, dispatch } = useContext(AppContext);
     const [modalVisible, setModalVisible] = useState(false);
     const [userId, setUserId] = useState('');
+    const [isConfirmed, setIsConfirmed] = useState(false); // Flag para controlar redirecionamento
 
-    const handleCheckouts = () => {
+    useEffect(() => {
+        if (isConfirmed && state.checkedOutBooks[userId]?.length > 0) {
+            setModalVisible(false);
+            navigation.navigate('Checkouts', { userId });
+            setIsConfirmed(false);
+        }
+    }, [state.checkedOutBooks, userId, isConfirmed, navigation]);
+
+    const handleCheckouts = async () => {
         if (!userId.trim()) {
-            Alert.alert('Erro', 'Por favor, insira um User ID válido.');
+            Alert.alert('Erro', 'O campo User ID não pode estar vazio.');
             return;
         }
 
-        setModalVisible(false);
-        navigation.navigate('Checkouts', { userId });
+        try {
+            setIsConfirmed(true);
+            await fetchCheckedOutBooks(userId)(dispatch);
+        } catch (error) {
+            setIsConfirmed(false);
+            Alert.alert('Erro', 'Não foi possível verificar o utilizador. Tente novamente.');
+            console.error('Erro ao verificar User ID:', error);
+        }
     };
-
 
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Área de Gestão</Text>
-            <TouchableOpacity
-                style={styles.button}
-                onPress={() => navigation.navigate('Libraries')}
-            >
-                <Text style={styles.buttonText}>Ver Bibliotecas</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-                style={styles.button}
-                onPress={() => setModalVisible(true)}
-            >
-                <Text style={styles.buttonText}>Checkouts</Text>
-            </TouchableOpacity>
 
-            {/* Modal para Inserção de User ID */}
-            <Modal
-                transparent={true}
-                animationType="slide"
+            <Button
+                title="Ver Bibliotecas"
+                onPress={() => navigation.navigate('Libraries')}
+            />
+
+            <Button
+                title="Checkouts"
+                onPress={() => setModalVisible(true)}
+            />
+
+            <Popup
                 visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
-            >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
+                message={
+                    <View style={styles.popupContent}>
                         <Text style={styles.modalTitle}>Inserir User ID</Text>
-                        <TextInput
-                            style={styles.input}
+                        <Input
                             placeholder="User ID"
-                            placeholderTextColor="#666"
                             value={userId}
                             onChangeText={setUserId}
+                            style={styles.input}
                         />
-                        <TouchableOpacity
-                            style={styles.modalButton}
-                            onPress={handleCheckouts}
-                        >
-                            <Text style={styles.modalButtonText}>Confirmar</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={styles.cancelButton}
-                            onPress={() => setModalVisible(false)}
-                        >
-                            <Text style={styles.cancelButtonText}>Cancelar</Text>
-                        </TouchableOpacity>
+                        <View style={styles.buttonContainer}>
+                            <Button
+                                title="Confirmar"
+                                onPress={handleCheckouts}
+                            />
+                            <Button
+                                title="Cancelar"
+                                onPress={() => setModalVisible(false)}
+                            />
+                        </View>
                     </View>
-                </View>
-            </Modal>
+                }
+                onClose={() => setModalVisible(false)}
+            />
         </View>
     );
 }
@@ -80,66 +91,26 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 20,
     },
-    button: {
-        backgroundColor: '#4CAF50',
-        padding: 15,
-        borderRadius: 8,
-        marginBottom: 15,
+    popupContent: {
         alignItems: 'center',
-        width: 200,
-    },
-    buttonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    modalContainer: {
-        flex: 1,
         justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalContent: {
-        width: '80%',
-        backgroundColor: '#fff',
-        borderRadius: 10,
         padding: 20,
-        alignItems: 'center',
+        width: '100%',
     },
     modalTitle: {
         fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 20,
+        textAlign: 'center',
     },
     input: {
-        backgroundColor: '#f5f5f5',
-        padding: 10,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#ccc',
-        marginBottom: 15,
+        marginBottom: 20,
         width: '100%',
-        color: '#333',
+        maxWidth: 300,
     },
-    modalButton: {
-        backgroundColor: '#4CAF50',
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderRadius: 8,
-        marginBottom: 10,
+    buttonContainer: {
         width: '100%',
+        gap: 10,
         alignItems: 'center',
-    },
-    modalButtonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    cancelButton: {
-        alignItems: 'center',
-    },
-    cancelButtonText: {
-        fontSize: 16,
-        color: '#333',
     },
 });

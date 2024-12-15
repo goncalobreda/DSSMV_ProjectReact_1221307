@@ -1,37 +1,41 @@
 import React from 'react';
-import { View, Text, Modal, StyleSheet } from 'react-native';
+import {
+    View,
+    Modal,
+    StyleSheet,
+    TouchableWithoutFeedback,
+    Keyboard,
+} from 'react-native';
 
 const Popup = ({ visible, message, onClose }) => (
-    <Modal transparent={true} visible={visible}>
-        <View style={styles.container}>
-            <View style={styles.popup}>
-                <Text style={styles.message}>{message}</Text>
-                <Text style={styles.close} onPress={onClose}>Fechar</Text>
+    <Modal
+        transparent={true}
+        visible={visible}
+        animationType="fade"
+        onRequestClose={onClose}
+    >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.modalContainer}>
+                <View style={styles.popupContent}>
+                    {message}
+                </View>
             </View>
-        </View>
+        </TouchableWithoutFeedback>
     </Modal>
 );
 
 const styles = StyleSheet.create({
-    container: {
+    modalContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Fundo escuro
     },
-    popup: {
-        backgroundColor: 'white',
+    popupContent: {
+        backgroundColor: '#fff',
         padding: 20,
         borderRadius: 10,
         width: '80%',
-    },
-    message: {
-        fontSize: 16,
-        marginBottom: 10,
-    },
-    close: {
-        color: 'blue',
-        textAlign: 'right',
     },
 });
 

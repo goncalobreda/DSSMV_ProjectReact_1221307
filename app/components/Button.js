@@ -9,14 +9,17 @@ const Button = ({ title, onPress }) => (
 
 const styles = StyleSheet.create({
     button: {
-        padding: 10,
-        backgroundColor: '#007BFF',
-        borderRadius: 5,
+        backgroundColor: '#4CAF50', // Verde
+        padding: 15,
+        borderRadius: 8,
+        marginBottom: 15,
         alignItems: 'center',
+        width: 150,
     },
     text: {
-        color: '#FFFFFF',
+        color: '#FFFFFF', // Branco
         fontSize: 16,
+        fontWeight: 'bold',
     },
 });
 

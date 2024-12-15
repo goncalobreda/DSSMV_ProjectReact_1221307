@@ -1,32 +1,30 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { getCheckedOutBooks, checkInBook, extendCheckout } from '../services/api';
+import { AppContext } from '../context/AppContext';
+import Button from '../components/Button';
+import {fetchCheckedOutBooks, checkInBookAction, extendCheckoutAction} from '../context/actions';
 
-// Função para formatar o Library ID
+
 const formatLibraryId = (id) => {
     return `${id.slice(0, 8)}-${id.slice(8, 12)}-${id.slice(12, 16)}-${id.slice(16, 20)}-${id.slice(20)}`;
 };
 
 export default function CheckoutsScreen({ route }) {
     const { userId } = route.params;
-    const [books, setBooks] = useState([]);
+    const { state, dispatch } = useContext(AppContext);
+
+    const books = (state.checkedOutBooks[userId] || []).map((item) => ({
+        ...item,
+        libraryId: formatLibraryId(item.libraryId),
+    }));
+
+
 
     useEffect(() => {
-        const fetchCheckedOutBooks = async () => {
-            try {
-                const data = await getCheckedOutBooks(userId);
-                const formattedData = data.map((item) => ({
-                    ...item,
-                    libraryId: formatLibraryId(item.libraryId),
-                }));
-                setBooks(formattedData);
-            } catch (error) {
-                console.error('Erro ao buscar livros emprestados:', error);
-            }
-        };
-
-        fetchCheckedOutBooks();
-    }, [userId]);
+        fetchCheckedOutBooks(userId)(dispatch).catch((error) => {
+            console.error('Erro a encontrar livros emprestados:', error);
+        });
+    }, [userId, dispatch]);
 
     const formatDate = (dateString) => {
         const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
@@ -34,13 +32,8 @@ export default function CheckoutsScreen({ route }) {
     };
 
     const handleCheckIn = async (bookId, libraryId) => {
-        console.log('Book ID:', bookId);
-        console.log('Library ID:', libraryId);
-        console.log('User ID:', userId);
-
         try {
-            await checkInBook(libraryId, bookId, userId);
-            setBooks((prevBooks) => prevBooks.filter((book) => book.bookId !== bookId));
+            await checkInBookAction(libraryId, bookId, userId)(dispatch);
             Alert.alert('Sucesso', 'Livro devolvido com sucesso!');
         } catch (error) {
             console.error('Erro ao devolver livro:', error);
@@ -50,19 +43,20 @@ export default function CheckoutsScreen({ route }) {
 
     const handleExtend = async (checkoutId) => {
         try {
-            await extendCheckout(checkoutId);
+            console.log('Checkout ID:', checkoutId); // Verificar o ID
+            await extendCheckoutAction(checkoutId)(dispatch);
             Alert.alert('Sucesso', 'Prazo do empréstimo estendido por mais 7 dias!');
-            const updatedBooks = books.map((book) =>
-                book.id === checkoutId
-                    ? { ...book, dueDate: new Date(new Date(book.dueDate).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString() }
-                    : book
-            );
-            setBooks(updatedBooks);
         } catch (error) {
             console.error('Erro ao estender prazo do empréstimo:', error);
-            Alert.alert('Erro', 'Não foi possível estender o prazo do empréstimo.');
+
+            if (error.response && error.response.data.message === "You can only have a book checked out for a maximum of 6 weeks") {
+                Alert.alert('Aviso', 'Já atingiste o limite de extensões permitidas para este livro.');
+            } else {
+                Alert.alert('Erro', 'Não foi possível estender o prazo do empréstimo.');
+            }
         }
     };
+
 
     const renderBookItem = ({ item }) => {
         const authors = item.book.authors?.map((author) => author.name).join(', ') || 'Autor Desconhecido';
@@ -74,32 +68,34 @@ export default function CheckoutsScreen({ route }) {
                 <Text style={styles.bookInfo}>Devolução: {formatDate(item.dueDate)}</Text>
                 <Text style={styles.bookLibrary}>Biblioteca: {item.libraryName}</Text>
                 <View style={styles.buttonContainer}>
-                    <TouchableOpacity
-                        style={styles.extendButton}
+                    <Button
+                        title="Extend"
                         onPress={() => handleExtend(item.id)}
-                    >
-                        <Text style={styles.buttonText}>Extend</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.checkInButton}
+                    />
+                    <Button
+                        title="Check-In"
                         onPress={() => handleCheckIn(item.bookId, item.libraryId)}
-                    >
-                        <Text style={styles.buttonText}>Check-In</Text>
-                    </TouchableOpacity>
+                    />
                 </View>
             </View>
         );
     };
 
+
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Livros Emprestados</Text>
             <FlatList
-                data={books}
+                data={books || []} // Garante que data nunca é undefined
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={renderBookItem}
                 contentContainerStyle={styles.list}
+                ListEmptyComponent={() => (
+                    <Text style={{ textAlign: 'center', marginTop: 20 }}>Nenhum livro emprestado encontrado.</Text>
+                )}
             />
+
         </View>
     );
 }
@@ -152,27 +148,9 @@ const styles = StyleSheet.create({
     },
     buttonContainer: {
         flexDirection: 'row',
+        justifyContent: 'space-between',
         marginTop: 10,
+        gap: 10,
     },
-    extendButton: {
-        backgroundColor: '#4CAF50',
-        flex: 1,
-        paddingVertical: 10,
-        borderRadius: 10,
-        marginHorizontal: 5,
-        alignItems: 'center',
-    },
-    checkInButton: {
-        backgroundColor: '#4CAF50',
-        flex: 1,
-        paddingVertical: 10,
-        borderRadius: 10,
-        marginHorizontal: 5,
-        alignItems: 'center',
-    },
-    buttonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
+
 });

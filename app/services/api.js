@@ -75,7 +75,7 @@ export const getCheckedOutBooks = async (userId) => {
         });
         return response.data;
     } catch (error) {
-        console.error('Erro ao buscar livros emprestados:', error);
+        console.error('Erro a encontrar livros emprestados:', error);
         throw error;
     }
 };
@@ -96,6 +96,7 @@ export const checkInBook = async (libraryId, bookId, userId) => {
 
 export const extendCheckout = async (checkoutId) => {
     try {
+        console.log('extend prazo para:', checkoutId); // Verificar o ID
         const response = await api.post(`/checkout/${checkoutId}/extend`);
         return response.data;
     } catch (error) {
@@ -103,7 +104,4 @@ export const extendCheckout = async (checkoutId) => {
         throw error;
     }
 };
-
-
-
 export default api;

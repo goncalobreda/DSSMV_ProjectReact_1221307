@@ -10,10 +10,8 @@ export default function LibraryBookScreen({ route, navigation }) {
     const books = state.books[libraryId] || []; // Obtém os livros do estado global
 
     useEffect(() => {
-        // Carrega os livros da biblioteca ao montar
         fetchLibraryBooks(libraryId)(dispatch);
 
-        // Recarrega os livros quando o ecrã for focado
         return navigation.addListener('focus', () => {
             fetchLibraryBooks(libraryId)(dispatch);
         });

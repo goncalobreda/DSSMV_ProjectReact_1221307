@@ -1,19 +1,32 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Modal, ScrollView } from 'react-native';
-import { AppContext } from '../context/AppContext';
-import { fetchLibraries, deleteLibraryAction } from '../context/actions';
+import { getLibraries, deleteLibrary } from '../services/api';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function LibrariesScreen({ navigation }) {
-    const { state, dispatch } = useContext(AppContext);
-    const [modalVisible, setModalVisible] = useState(false);
+    const [libraries, setLibraries] = useState([]);
     const [selectedLibrary, setSelectedLibrary] = useState(null);
-    const libraries = state.libraries || [];
+    const [modalVisible, setModalVisible] = useState(false);
 
-    useEffect(() => {
-        fetchLibraries()(dispatch).catch((error) => {
-            console.error('Erro a carregar bibliotecas:', error);
-        });
-    }, [dispatch]);
+    const fetchLibraries = async () => {
+        try {
+            const data = await getLibraries();
+            setLibraries(data);
+        } catch (error) {
+            console.error('Erro a encontrar bibliotecas:', error);
+        }
+    };
+
+
+
+
+    useFocusEffect(
+        React.useCallback(() => {
+            fetchLibraries().catch((error) => {
+                console.error('Erro a carregar bibliotecas:', error);
+            });
+        }, [])
+    );
 
     const handleDelete = async (libraryId) => {
         Alert.alert(
@@ -26,7 +39,10 @@ export default function LibrariesScreen({ navigation }) {
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            await deleteLibraryAction(libraryId)(dispatch);
+                            await deleteLibrary(libraryId);
+                            setLibraries((prevLibraries) =>
+                                prevLibraries.filter((library) => library.id !== libraryId)
+                            );
                             setModalVisible(false);
                             Alert.alert('Sucesso', 'Biblioteca eliminada com sucesso.');
                         } catch (error) {
@@ -74,6 +90,7 @@ export default function LibrariesScreen({ navigation }) {
             >
                 <Text style={styles.addButtonText}>+ Adicionar Biblioteca</Text>
             </TouchableOpacity>
+
 
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 {libraries.map(renderLibraryItem)}

@@ -7,17 +7,18 @@ export default function LibraryBookScreen({ route, navigation }) {
     const { libraryId } = route.params;
     const { state, dispatch } = useContext(AppContext);
 
-    const books = state.books[libraryId] || []; // Filtrar os livros da biblioteca no estado global
+    const books = state.books[libraryId] || []; // Obtém os livros do estado global
 
     useEffect(() => {
+        // Carrega os livros da biblioteca ao montar
         fetchLibraryBooks(libraryId)(dispatch);
 
-        const unsubscribe = navigation.addListener('focus', () => {
+        // Recarrega os livros quando o ecrã for focado
+        return navigation.addListener('focus', () => {
             fetchLibraryBooks(libraryId)(dispatch);
         });
-
-        return unsubscribe; // Remove listener ao desmontar
     }, [navigation, libraryId, dispatch]);
+
 
     const renderBookItem = ({ item }) => {
         const authors = item.book.authors?.map((author) => author.name).join(', ') || 'Autor Desconhecido';
